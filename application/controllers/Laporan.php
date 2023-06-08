@@ -19,7 +19,6 @@ class Laporan extends CI_Controller
         $this->load->view('buku/laporan_buku', $data);
         $this->load->view('templates/footer');
     }
-
     public function cetak_laporan_buku()
     {
         $data['buku'] = $this->ModelBuku->getBuku()->result_array();
@@ -110,4 +109,58 @@ class Laporan extends CI_Controller
         );
         $this->load->view('pinjam/export-excel-pinjam', $data);
     }
+    
+    public function laporan_anggota() 
+    {
+        $data['judul'] = 'Data Anggota';
+        $data['user'] = $this->ModelUser->cekData(['email' => $this->session->userdata('email')])->row_array();
+        $this->db->where('role_id', 2);
+        $data['anggota'] = $this->db->get('user')->result_array();
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/sidebar', $data);
+        $this->load->view('templates/topbar', $data);
+        $this->load->view('anggota/laporan_anggota', $data);
+        $this->load->view('templates/footer');
+    }
+    public function print_laporan_anggota()
+    {
+        $data['user'] = $this->ModelUser->cekData(['email' => $this->session->userdata('email')])->row_array();
+        $this->db->where('role_id', 2);
+        $data['anggota'] = $this->db->get('user')->result_array();
+
+
+        $this->load->view('anggota/print_laporan_anggota', $data);
+    }
+    public function pdf_laporan_anggota()
+    {
+        $this->load->library('Dompdf_gen');
+
+        $data['user'] = $this->ModelUser->cekData(['email' => $this->session->userdata('email')])->row_array();
+        $this->db->where('role_id', 2);
+        $data['anggota'] = $this->db->get('user')->result_array();
+
+        $this->load->view('anggota/pdf_data_anggota', $data);
+
+        $paper = 'A4';
+        $orien = 'landscape';
+        $html = $this->output->get_output();
+
+        $this->dompdf->set_paper($paper, $orien);
+        $this->dompdf->load_html($html);
+        $this->dompdf->render();
+        $this->dompdf->stream("laporan data anggota.pdf");
+    }
+    public function export_excel_anggota()
+    {
+        $data = array(
+            'title' => 'Laporan Anggota',
+            'user' => $this->ModelUser->cekData(['email' => $this->session->userdata('email')])->row_array(),
+        $this->db->where('role_id', 2),
+        'anggota' => $this->db->get('user')->result_array()
+        );
+
+        $this->load->view('anggota/excel_anggota', $data);
+    }
+
 }
