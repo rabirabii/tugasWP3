@@ -19,13 +19,14 @@ class Booking extends CI_controller
 
         $user = $this->ModelUser->cekData(['email' => $this->session->userdata('email')])->row_array();
         foreach ($user as $a) {
-            $data = [
+            $userData = [
                 'image' => $user['image'],
                 'user' => $user['nama'],
                 'email' => $user['email'],
                 'tanggal_input' => $user['tanggal_input'],
             ];
         }
+        
         $dtb = $this->ModelBooking->showtemp(['id_user' => $id_user])->num_rows();
 
         if ($dtb < 1) {
@@ -37,7 +38,7 @@ class Booking extends CI_controller
         };
         $data['judul'] = "Data Booking";
 
-        $this->load->view('templates/templates-user/header', $data);
+        $this->load->view('templates/templates-user/header', $userData);
         $this->load->view('booking/data-booking', $data);
         $this->load->view('templates/templates-user/modal');
         $this->load->view('templates/templates-user/footer');
@@ -46,9 +47,13 @@ class Booking extends CI_controller
     {
         $id_buku = $this->uri->segment(3);
 
+
         //memilih data buku yang untuk dimasukkan ke tabel temp/keranjang melalui variabel $isi
         $d = $this->db->query("Select*from buku where id='$id_buku'")->row();
 
+            if ($d-> stok <= 0) {
+                $this->session->set_flashdata('pesan', '<div class="alert alert-danger alert-message" role="alert">Maaf, stok buku sudah habis.</div>');
+                redirect(base_url() . 'home');            }
         //berupa data2 yang akan disimpan ke dalam tabel temp/keranjang
         $isi = [
             'id_buku' => $id_buku,
@@ -63,7 +68,7 @@ class Booking extends CI_controller
         ];
 
         //cek apakah buku yang di klik booking sudah ada di keranjang
-        $temp = $this->ModelBooking->getDataWhere('temp', ['id_buku' => $id_buku])->num_rows();
+        $temp = $this->ModelBooking->getDataWhere('temp', ['id_buku' => $id_buku, 'id_user' => $this->session->userdata('id_user')])->num_rows();
         $userid = $this->session->userdata('id_user');
 
         //cek jika sudah memasukan 3 buku untuk dibooking dalam keranjang
@@ -88,6 +93,7 @@ class Booking extends CI_controller
             redirect(base_url() . 'home');
         }
 
+        //
         //membuat tabel temp jika belum ada
         $this->ModelBooking->createTemp();
         $this->ModelBooking->insertData('temp', $isi);
@@ -102,7 +108,7 @@ class Booking extends CI_controller
         $id_buku = $this->uri->segment(3);
         $id_user = $this->session->userdata('id_user');
 
-        $this->ModelBooking->deleteData(['id_buku' => $id_buku], 'temp');
+        $this->ModelBooking->deleteData(['id_buku' => $id_buku, 'id_user' => $id_user], 'temp');
         $kosong = $this->db->query("select*from temp where id_user='$id_user'")->num_rows();
         if ($kosong < 1) {
             $this->session->set_flashdata('pesan', '<div class="alert alert-massege alert-danger" role="alert">Tidak Ada Buku dikeranjang</div>');
@@ -111,6 +117,7 @@ class Booking extends CI_controller
             redirect(base_url() . 'booking');
         }
     }
+
 
     public function bookingSelesai($where)
     {

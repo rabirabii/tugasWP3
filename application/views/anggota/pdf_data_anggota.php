@@ -35,6 +35,8 @@
                 <th>Nama</th>
                 <th>Email</th>
                 <th scope="col" nowrap>Member Sejak</th>
+                <th scope="col">Image</th>
+
             </tr>
         </thead>
         <tbody>
@@ -48,6 +50,13 @@
                 <td><?= $a['nama']; ?></td>
                 <td><?= $a['email']; ?></td>
                 <td><?= $a['tanggal_input']; ?></td>
+                <td>
+                    <picture>
+                        <source srcset="" type="image/svg+xml">
+                        <img src="<?= base_url('assets/img/profile/') . $a['image']; ?>" class="img-fluid img-thumbnail"
+                            alt="..." style="width:60px;height:80px;">
+                    </picture>
+                </td>
             </tr>
             <?php
 			}
